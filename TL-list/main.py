@@ -21,30 +21,41 @@ class ListRand:
 
     def serialize(self, file):
         """Сериализация"""
+        # Создание контейнеров для хранения собираемой строки и списка всех нодов.
         list_of_params = [self.count]
-        append = list_of_params.append
         list_2_arr = []
+        # Так как Python обрабатывает каждое обращение к методу индивидуально, для ускорения работы циклов
+        #   добавление элементов в созданные контейнеры перенесено в специальные переменные
+        append_param = list_of_params.append
+        append_arr = list_2_arr.append
 
+        # Сохранение всех элементов списка в контейнер, последовательно друг за другом - ( на операцию O(n) )
         next_node = self.head
         while next_node:
-            list_2_arr.append(next_node)
+            append_arr(next_node)
             next_node = next_node.next
 
+        # Для удовлетврения условия на алгоритмическую сложность придумал решение в виде хэширования позиции нода
+        #   с ключом из экземпляра этого нода (или иначе - его адреса) - ( на операцию O(n) )
         memory_addr_2_list_position = {item: num for num, item in enumerate(list_2_arr)}
 
+        # Сериализация элементов
         for item in list_2_arr:
+            # Получение строки
             str_node = item.string
-            # str_len = len(str_node)
+            # Получение позиции нода по его экземпляру
             rnd_node = memory_addr_2_list_position[item.rand]
 
-            # append(str_len)
-            append(str_node)
-            append(rnd_node)
+            # Добавление в список
+            append_param(str_node)
+            append_param(rnd_node)
 
+        # Пробегаем по списку приводя тип к строковому
         list_of_params = map(str, list_of_params)
+        # Конкатенация в единую строку с разделителем в виде переноса коретки
         list_of_params = '\n'.join(list_of_params)
 
-        # file.write(bytes(list_of_params, 'utf-8'))
+        # Запись в поток
         file.write(list_of_params)
 
     @staticmethod
