@@ -29,14 +29,14 @@ class ListRand:
         append_param = list_of_params.append
         append_arr = list_2_arr.append
 
-        # Сохранение всех элементов списка в контейнер, последовательно друг за другом - ( на операцию O(n) )
+        # Сохранение всех элементов списка в контейнер, последовательно друг за другом
         next_node = self.head
         while next_node:
             append_arr(next_node)
             next_node = next_node.next
 
         # Для удовлетврения условия на алгоритмическую сложность придумал решение в виде хэширования позиции нода
-        #   с ключом из экземпляра этого нода (или иначе - его адреса) - ( на операцию O(n) )
+        #   с ключом из экземпляра этого нода (или иначе - его адреса)
         memory_addr_2_list_position = {item: num for num, item in enumerate(list_2_arr)}
 
         # Сериализация элементов
@@ -61,11 +61,12 @@ class ListRand:
     @staticmethod
     def deserialize(file):
         """Десериализация"""
+        # Чтение из потока и разделение на список подстрок
         split_arr = file.read().split('\n')
 
+        # Путём получения срезов с различным шагом подстроки сортируются по категориям
         count = int(split_arr[0])
         data = split_arr[1:]
-
         strings_arr = data[::2]
         rnd_arr = list(map(int, data[1::2]))
 
@@ -98,7 +99,7 @@ class ListRand:
 class MakeTest:
     """Набор инструкций для тестирования"""
     @staticmethod
-    def create_list():
+    def create_list(num):
         """Создание двусвязного списка из набора отдельных блоков"""
         # Создание независимых блоков
         list_of_independent_nodes = [ListNode(
@@ -106,7 +107,7 @@ class MakeTest:
             prev_el=None,
             rand_el=None,
             new_string=str(x)
-        ) for x in range(25)]
+        ) for x in range(num)]
 
         # Расстановка зависимостей
         for num in range(1, len(list_of_independent_nodes)):
@@ -126,13 +127,50 @@ class MakeTest:
 
         return new_list
 
+    @staticmethod
+    def identity_test(first_struct, second_struct):
+        """Тест на правильность восстановления зависимостей"""
+        def node_check(first_node, second_node):
+            """Сравнение элементов"""
+            strings_eq = first_node.string == second_node.string
+            rand_eq = first_node.rand.string == second_node.rand.string
+
+            if first_node.next:
+                next_eq = first_node.next.string == second_node.next.string
+            else:
+                next_eq = first_node.next == second_node.next
+
+            if first_node.prev:
+                prev_eq = first_node.prev.string == second_node.prev.string
+            else:
+                prev_eq = first_node.prev == second_node.prev
+
+            assert all([strings_eq, rand_eq, next_eq, prev_eq]), 'Элементы не совпадают!'
+
+        assert first_struct.count == second_struct.count, 'Число элементов не совпадает!'
+
+        first_next = first_struct.head
+        second_next = second_struct.head
+        while first_next:
+            node_check(first_next, second_next)
+            first_next = first_next.next
+            second_next = second_next.next
+
+        print('Структуры идентичны!')
+
 
 if __name__ == '__main__':
-    test_list = MakeTest.create_list()
+    # Создание списка
+    test_list = MakeTest.create_list(25)
 
+    # Сериализация
     with open('ListRand.sbr', mode='w') as op_file:
         test_list.serialize(op_file)
 
+    # Десериализация
     with open('ListRand.sbr', mode='r') as op_file:
         restore_list = test_list.deserialize(op_file)
+
+    # Тест на идентичность
+    MakeTest.identity_test(test_list, restore_list)
 
